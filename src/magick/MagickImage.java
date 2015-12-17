@@ -1153,7 +1153,17 @@ public class MagickImage extends Magick {
      * @author Abdulbaset Gaddah <agaddah@yahoo.com>
      */
     public native int getNumberColors()
-	throws MagickException;
+            throws MagickException;
+
+
+    /**
+     * Return the most common color in an image.
+     * @return the color
+     * @exception MagickException on error
+     * @author Joan Tomàs <joan.tomas@marfeel.com>
+     */
+    public native String getMostRelevantColor()
+            throws MagickException;
 
     /*
      * Set the number of unigue colors in an image.

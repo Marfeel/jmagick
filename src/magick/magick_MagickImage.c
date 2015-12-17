@@ -8,9 +8,6 @@
 #include "magick_MagickImage.h"
 #include "jmagick.h"
 
-
-
-
 /*
  * Class:     magick_MagickImage
  * Method:    initMultiImage
@@ -3040,6 +3037,72 @@ JNIEXPORT jint JNICALL Java_magick_MagickImage_getNumberColors
 
     DestroyExceptionInfo(&exception);
     return numberColors;
+}
+
+int HistogramCompareByCount(const void *x,const void *y)
+{
+  const ColorPacket
+    *color_1,
+    *color_2;
+
+  color_1=(const ColorPacket *) x;
+  color_2=(const ColorPacket *) y;
+  if (color_2->count > color_1->count)
+    return 1;
+  if (color_2->count < color_1->count)
+    return -1;
+  return 0;
+}
+
+/*
+ * Class:     magick_MagickImage
+ * Method:    getImageHistogram
+ * Signature: ()Ljava/lang/int;
+ *
+ * Contributed by Joan Tomàs <joan.tomas@marfeel.com>
+ */
+JNIEXPORT jstring JNICALL Java_magick_MagickImage_getMostRelevantColor
+    (JNIEnv *env, jobject self)
+{
+    Image *image = NULL;
+    jint numberColors=0;
+
+    size_t number_colors = 0;
+    MagickPixelPacket pixel;
+    char hex[MaxTextExtent], hex2[MaxTextExtent];
+
+    image = (Image*) getHandle(env, self, "magickImageHandle", NULL);
+    if (image == NULL) {
+	    throwMagickException(env, "No image to get the number of unique colors");
+	    return -1;
+    }
+
+    ColorPacket *histogram = GetImageHistogram(image,&number_colors, (ExceptionInfo *) NULL);
+
+    qsort((void *) histogram,(size_t) number_colors,sizeof(*histogram), HistogramCompareByCount);
+
+    GetMagickPixelPacket(image,&pixel);
+
+    SetMagickPixelPacket2(image,&histogram->pixel,&histogram->index,&pixel);
+    GetColorTuple(&pixel,MagickTrue,hex);
+
+    jstring color=(*env)->NewStringUTF(env, hex);
+
+    histogram=(ColorPacket *) RelinquishMagickMemory(histogram);
+
+    return color;
+}
+
+void SetMagickPixelPacket2(const Image *image, const PixelPacket *color,const IndexPacket *index,MagickPixelPacket *pixel)
+{
+  pixel->red=(MagickRealType) color->red;
+  pixel->green=(MagickRealType) color->green;
+  pixel->blue=(MagickRealType) color->blue;
+  pixel->opacity=(MagickRealType) color->opacity;
+  if (((image->colorspace == CMYKColorspace) ||
+       (image->storage_class == PseudoClass)) &&
+      (index != (const IndexPacket *) NULL))
+    pixel->index=(MagickRealType) *index;
 }
 
 /*
