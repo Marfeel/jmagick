@@ -3054,6 +3054,18 @@ int HistogramCompareByCount(const void *x,const void *y)
   return 0;
 }
 
+void SetMagickPixelPacket2(const Image *image, const PixelPacket *color,const IndexPacket *index,MagickPixelPacket *pixel)
+{
+  pixel->red=(MagickRealType) color->red;
+  pixel->green=(MagickRealType) color->green;
+  pixel->blue=(MagickRealType) color->blue;
+  pixel->opacity=(MagickRealType) color->opacity;
+  if (((image->colorspace == CMYKColorspace) ||
+       (image->storage_class == PseudoClass)) &&
+      (index != (const IndexPacket *) NULL))
+    pixel->index=(MagickRealType) *index;
+}
+
 /*
  * Class:     magick_MagickImage
  * Method:    getImageHistogram
@@ -3091,18 +3103,6 @@ JNIEXPORT jstring JNICALL Java_magick_MagickImage_getMostRelevantColor
     histogram=(ColorPacket *) RelinquishMagickMemory(histogram);
 
     return color;
-}
-
-void SetMagickPixelPacket2(const Image *image, const PixelPacket *color,const IndexPacket *index,MagickPixelPacket *pixel)
-{
-  pixel->red=(MagickRealType) color->red;
-  pixel->green=(MagickRealType) color->green;
-  pixel->blue=(MagickRealType) color->blue;
-  pixel->opacity=(MagickRealType) color->opacity;
-  if (((image->colorspace == CMYKColorspace) ||
-       (image->storage_class == PseudoClass)) &&
-      (index != (const IndexPacket *) NULL))
-    pixel->index=(MagickRealType) *index;
 }
 
 /*
